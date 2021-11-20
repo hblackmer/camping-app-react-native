@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { Text, View, ScrollView, FlatList } from 'react-native';
-import { Card, Icon } from 'react-native-elements';
+import { Text, View, ScrollView, FlatList, Modal, Button, StyleSheet } from 'react-native';
+import { Card, Icon, Rating, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import { postFavorite } from '../redux/ActionCreators';
-import { StyleSheet, Button, Modal } from 'react-native';
 
 const mapStateToProps = state => {
     return {
@@ -61,7 +60,12 @@ function RenderComments({comments}) {
         return (
             <View style={{margin: 10}}>
                 <Text style={{fontSize: 14}}>{item.text}</Text>
-                <Text style={{fontSize: 12}}>{item.rating} Stars</Text>
+                <Rating 
+                    startingValue={item.rating}
+                    imageSize={10}
+                    style={{alignItems:'flex-start', paddingVertical:'5%'}}
+                    readonly
+                />
                 <Text style={{fontSize: 12}}>{`-- ${item.author}, ${item.date}`}</Text>
             </View>
         );
@@ -84,7 +88,10 @@ class CampsiteInfo extends Component {
         super(props);
 
         this.state = {
-            showModal: false
+            showModal: false,
+            rating: 5,
+            author: '',
+            text: ''
         };
     }
 
@@ -94,6 +101,20 @@ class CampsiteInfo extends Component {
 
     toggleModal() {
         this.setState({showModal: !this.state.showModal});
+    }
+
+    handleComment(campsiteId) {
+        console.log(JSON.stringify(this.state));
+        this.toggleModal();
+    }
+
+    resetForm() {
+        this.setState({
+            showModal: false,
+            rating: 5,
+            author: '',
+            text: ''
+        });
     }
 
     markFavorite(campsiteId) {
@@ -119,9 +140,53 @@ class CampsiteInfo extends Component {
                     onRequestClose={() => this.toggleModal()}
                 >
                     <View styles={styles.modal}>
+                        <Rating 
+                            showRating
+                            startingValue={this.state.rating}
+                            imageSize={40}
+                            onFinishRating={rating => this.setState({ rating: rating })}
+                            style={{paddingVertical: 10}}
+                        />
+                        <Input
+                            placeholder='Author'
+                            leftIcon={
+                                <Icon 
+                                    type='font-awesome'
+                                    name='user-o'
+                                />
+                            }
+                            leftIconContainerStyle={{ paddingRight:10 }}
+                            onChangeText={ author => this.setState({ author: author })}
+                            value={this.state.author}
+                        />
+                        <Input
+                            placeholder='Comment'
+                            leftIcon={
+                                <Icon 
+                                    type='font-awesome'
+                                    name='comment-o'
+                                />
+                            }
+                            leftIconContainerStyle={{ paddingRight:10 }}
+                            onChangeText={text => this.setState({text: text})}
+                            value={this.state.text}
+                        />
                         <View style={{margin: 10}}>
                             <Button
-                                onPress={() => this.toggleModal()}
+                                onPress = {() => {
+                                    this.handleComment(campsiteId);
+                                    this.resetForm();
+                                }}
+                                color='#5637DD'
+                                title='Submit'
+                            />
+                        </View>
+                        <View style={{margin: 10}}>
+                            <Button
+                                onPress={() => {
+                                    this.toggleModal();
+                                    this.resetForm();
+                                }}
                                 color='#808080'
                                 title='Cancel'
                             />
